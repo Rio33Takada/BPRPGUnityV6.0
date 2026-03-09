@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1790c1da5211e6c4499f97827460a2ce, type: 3}
+  m_Name: Chara1
+  m_EditorClassIdentifier: 
+  characterName: "\u30A2\u30E1\u30B8\u30B9\u30C8"
+  hp: 10
+  attack: 10
+  defence: 10
+  OwnPieces:
+  - {fileID: 3525858250116228980, guid: d90dea9e00279f248be76954338f66f4, type: 3}
+  iconSprite: {fileID: 3727805838264861437, guid: 4901b3263c1ba0e499ce6e95fe4a7726, type: 3}
