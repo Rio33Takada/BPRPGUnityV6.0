@@ -17,7 +17,10 @@ MonoBehaviour:
   bodyCells:
   - {x: 0, y: 0}
   - {x: 1, y: 0}
-  - {x: -1, y: 0}
+  - {x: 2, y: 0}
   - {x: 0, y: 1}
-  - {x: 0, y: -1}
-  enemyPrefab: {fileID: 2944337777123894914, guid: f76c51543166d6645bee3d87c9e741c3, type: 3}
+  - {x: 0, y: 2}
+  - {x: 1, y: 2}
+  - {x: 2, y: 2}
+  - {x: 2, y: 1}
+  enemyPrefab: {fileID: 2944337777123894914, guid: 9166d9bfe5484a5408a8df08ed287392, type: 3}

@@ -26,6 +26,8 @@ public class CameraProjectionMover : MonoBehaviour
     private Camera cam;
     private bool isTransitioning;
 
+    [SerializeField] MeshRenderer boardFade;
+
     private void Awake()
     {
         cam = GetComponent<Camera>();
@@ -58,6 +60,8 @@ public class CameraProjectionMover : MonoBehaviour
         cam.orthographic = true;
         cam.orthographicSize = orthographicSize;
 
+        boardFade.enabled = true;
+
         isTransitioning = false;
     }
 
@@ -68,6 +72,8 @@ public class CameraProjectionMover : MonoBehaviour
 
         // projectionêÿë÷
         cam.orthographic = false;
+
+        boardFade.enabled = false;
 
         // à⁄ìÆ + FOVï‚ä‘
         yield return MoveWithFOV(
