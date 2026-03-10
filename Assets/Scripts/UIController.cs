@@ -15,6 +15,10 @@ public class UIController : MonoBehaviour
 
     [SerializeField] GameObject damageTextPrefab;
 
+    [SerializeField] GameObject playerHpBar;
+    [SerializeField] Transform playerHpBarPosition;
+    private Slider playerHpBarSlider;
+
     private Dictionary<BattleCharacter, CharacterUI> charaUIList = new Dictionary<BattleCharacter, CharacterUI>();
 
     public void CreateUI(BattleController battleController)
@@ -30,6 +34,9 @@ public class UIController : MonoBehaviour
 
             charaUIList.Add(c, uIObject);
         }
+
+        var barObj = Instantiate(playerHpBar, playerHpBarPosition);
+        playerHpBarSlider = barObj.GetComponent<Slider>();
     }
 
     public void CreateDicideButton()
@@ -68,5 +75,10 @@ public class UIController : MonoBehaviour
 
         canvas.transform.position = end;
         Destroy(canvas);
+    }
+
+    public void UpdateUI()
+    {
+        playerHpBarSlider.value = battleController.playerCurrentHp / battleController.playerMaxHp;
     }
 }

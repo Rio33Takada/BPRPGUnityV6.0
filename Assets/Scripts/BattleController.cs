@@ -23,6 +23,9 @@ public class BattleController : MonoBehaviour
 
     public CameraProjectionMover mainCamera;
 
+    public float playerMaxHp;
+    public float playerCurrentHp;
+
     private void Awake()
     {
         CharacterPiece.OnPiecePlaced += HandlePiecePlaced;
@@ -39,7 +42,9 @@ public class BattleController : MonoBehaviour
         {
             var chara = new BattleCharacter(c);
             playerTeam.Add(chara);
+            playerMaxHp += chara.Hp;
         }
+        playerCurrentHp = playerMaxHp;
 
     }
 
@@ -109,6 +114,7 @@ public class BattleController : MonoBehaviour
 
         //UIê∂ê¨.
         uIController.CreateUI(this);
+        uIController.UpdateUI();
 
         //å©ÇΩñ⁄ê∂ê¨.
         GenerateEnemyCells();

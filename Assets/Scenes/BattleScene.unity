@@ -5243,6 +5243,41 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 405923634}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &415871041
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 415871042}
+  m_Layer: 5
+  m_Name: PlayerHpBarParent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &415871042
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 415871041}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 3.5, y: 3.5, z: 3.5}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 1820577632}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -650, y: 400}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &421474869
 GameObject:
   m_ObjectHideFlags: 0
@@ -8231,7 +8266,10 @@ MonoBehaviour:
   enemySpawns:
   - {fileID: 11400000, guid: ad09b343ef8defe4a8ef2275b93a54b6, type: 2}
   - {fileID: 11400000, guid: d5f175afa0dc75246ab3e6432285fe60, type: 2}
+  - {fileID: 11400000, guid: 73c5e4ffb0f40dd479da602ba5c914d1, type: 2}
   mainCamera: {fileID: 1437524547}
+  playerMaxHp: 0
+  playerCurrentHp: 0
 --- !u!4 &632600095
 Transform:
   m_ObjectHideFlags: 0
@@ -15761,6 +15799,8 @@ MonoBehaviour:
   dicideButtonPrefab: {fileID: 5352834324019562571, guid: 6a0ea9ca3166780488141d0093ce9765, type: 3}
   dicideButtonPosition: {fileID: 764179616}
   damageTextPrefab: {fileID: 1266030703015662542, guid: dd63e9073ede31a49b090458c5b62d36, type: 3}
+  playerHpBar: {fileID: 2658828177774791841, guid: 76c8ef1bcedddbb499d34e3defb07b9f, type: 3}
+  playerHpBarPosition: {fileID: 415871042}
 --- !u!4 &1321902551
 Transform:
   m_ObjectHideFlags: 0
@@ -21355,6 +21395,7 @@ RectTransform:
   m_Children:
   - {fileID: 499256320}
   - {fileID: 764179616}
+  - {fileID: 415871042}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

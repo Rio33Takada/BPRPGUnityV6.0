@@ -23,8 +23,8 @@ public class RemainPieceObject : FieldObject
 
     public CharacterPiece GetCharacterPiece() { return characterPiece; }
 
-    public void PopOutAnimation()
+    public void PopOutAnimation(float cellSize)
     {
-        characterPiece.PopOutPiece(nearestEnemy.body.PosX, nearestEnemy.body.PosY);
+        characterPiece.PopOutPiece(nearestEnemy.body.PosX, nearestEnemy.body.PosY, cellSize);
     }
 }

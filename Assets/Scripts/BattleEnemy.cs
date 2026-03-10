@@ -100,6 +100,7 @@ public class BattleEnemy
 
     public void Move(FieldGrid grid)
     {
+        if(IsStun) return;
         var targetPosX = body.PosX;
         var targetPosY = body.PosY + 1;
 

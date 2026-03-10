@@ -49,7 +49,7 @@ public class EnemyTurn : BattleStateBase
                 controller.fieldGrid.GetCell(targetPosX, targetPosY).OccupiedObject = null;
 
                 //アニメーション開始.
-                piece.PopOutAnimation();
+                piece.PopOutAnimation(controller.fieldGrid.CellSize);
             }
         }
 
@@ -60,6 +60,11 @@ public class EnemyTurn : BattleStateBase
         }
 
         //攻撃.
+        foreach(var e in controller.GetBattleEnemies())
+        {
+            e.EnemyData.Attack(controller);
+            controller.uIController.UpdateUI();
+        }
 
         controller.ChangeState(nextState);
     }

@@ -13,4 +13,9 @@ public class EnemyData : ScriptableObject
     public List<Vector2Int> bodyCells;
 
     public GameObject enemyPrefab;
+
+    public virtual void Attack(BattleController controller)
+    {
+        Debug.Log($"{enemyName}ÇÕçUåÇÇµÇΩ");
+    }
 }

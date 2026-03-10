@@ -130,19 +130,19 @@ public class CharacterPiece : PuzzleObject
         return remainPiece;
     }
 
-    public void PopOutPiece(int enemyX, int enemyY)
+    public void PopOutPiece(int enemyX, int enemyY, float cellSize)
     {
         var pos = new Vector3(posX, 0, posY);
         var enemyPos = new Vector3(enemyX, 0, enemyY);
 
-        var dir = (enemyPos - pos).normalized;
+        var dir = ((pos - enemyPos) * cellSize).normalized;
 
         StartCoroutine(PopAnimation(dir));
     }
 
     IEnumerator PopAnimation(Vector3 dir)
     {
-        float duration = 0.6f;
+        float duration = 0.8f;
         float height = 2.0f;
         float distance = 3.0f;
 
@@ -169,12 +169,13 @@ public class CharacterPiece : PuzzleObject
             transform.position = pos;
 
             // ‰ñ“]
-            float rotateSpeed = 720f;
+            float rotateSpeed = -120f;
             transform.Rotate(axis, rotateSpeed * Time.deltaTime, Space.World);
 
             yield return null;
         }
 
         transform.position = end;
+        Destroy(gameObject);
     }
 }

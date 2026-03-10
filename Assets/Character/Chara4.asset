@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Chara4
   m_EditorClassIdentifier: 
   characterName: "\u30E2\u30EA\u30AA\u30F3"
-  hp: 40
+  hp: 400
   attack: 40
   defence: 40
   OwnPieces:
