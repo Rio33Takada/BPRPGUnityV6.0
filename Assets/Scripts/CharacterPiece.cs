@@ -8,6 +8,7 @@ public class CharacterPiece : PuzzleObject
     public static event Action<CharacterPiece, Vector2Int> OnPiecePlaced;
 
     private Camera mainCamera;
+    private PuzzleGrid puzzleGrid;
     public BattleCharacter character;
     private bool isDragging;
 
@@ -21,6 +22,7 @@ public class CharacterPiece : PuzzleObject
     private void Awake()
     {
         mainCamera = Camera.main;
+        puzzleGrid = FindFirstObjectByType<PuzzleGrid>();
     }
 
     public void BeginDrag(BattleCharacter character)
@@ -55,14 +57,19 @@ public class CharacterPiece : PuzzleObject
     {
         isDragging = false;
 
-        var grid = GameObject.Find("PuzzleGrid").GetComponent<PuzzleGrid>();
+        if (puzzleGrid == null)
+        {
+            Debug.LogError("PuzzleGrid not found.");
+            Destroy(gameObject);
+            return;
+        }
 
         Vector3 pos = transform.position;
 
-        int x = Mathf.RoundToInt(pos.x / grid.CellSize);
-        int y = Mathf.RoundToInt(pos.z / grid.CellSize);
+        int x = Mathf.RoundToInt(pos.x / puzzleGrid.CellSize);
+        int y = Mathf.RoundToInt(pos.z / puzzleGrid.CellSize);
 
-        Vector3 snappedPos = new Vector3(x * grid.CellSize, 5, y * grid.CellSize);
+        Vector3 snappedPos = new Vector3(x * puzzleGrid.CellSize, 5, y * puzzleGrid.CellSize);
 
         bool canPlace = true;
 
@@ -71,14 +78,18 @@ public class CharacterPiece : PuzzleObject
             var checkX = x + c.offset.x;
             var checkY = y + c.offset.y;
 
-            if (grid.GetCell(checkX, checkY) == null)
+            var checkCell = puzzleGrid.GetCell(checkX, checkY);
+
+            if (checkCell == null)
             {
-                Debug.Log($"Ç±ÇÃÉsÅ[ÉXÇÕ{x},{y}ÇÃà íuÇ…îzíuÇ≈Ç´Ç‹ÇπÇÒ(îÕàÕäO)");
+            else if (checkCell.IsOccupied && checkCell.OccupiedObject is not CharacterPiece)
                 canPlace = false;
             }
-            else if (grid.GetCell(checkX, checkY).IsOccupied && grid.GetCell(checkX, checkY).OccupiedObject is not CharacterPiece)
-            {
-                Debug.Log($"Ç±ÇÃÉsÅ[ÉXÇÕ{x},{y}ÇÃà íuÇ…îzíuÇ≈Ç´Ç‹ÇπÇÒ(êËóLçœÇ›)");
+                var placeCell = puzzleGrid.GetCell(placeX, placeY);
+
+                if (placeCell.OccupiedObject is CharacterPiece piece)
+                            puzzleGrid.GetCell(replacePos.x, replacePos.y).OccupiedObject = this;
+                placeCell.OccupiedObject = this;
                 canPlace = false;
             }
         }
@@ -149,7 +160,7 @@ public class CharacterPiece : PuzzleObject
         Vector3 start = transform.position;
         Vector3 end = start + dir * distance;
 
-        // dir Ç∆êÇíºÅixzïΩñ Åj
+        // dir „Å®ÂûÇÁõ¥ÔºàxzÂπ≥Èù¢Ôºâ
         Vector3 axis = Vector3.Cross(dir, Vector3.up).normalized;
 
         float t = 0;
@@ -159,16 +170,16 @@ public class CharacterPiece : PuzzleObject
             t += Time.deltaTime;
             float progress = t / duration;
 
-            // êÖïΩï˚å¸
+            // Ê∞¥Âπ≥ÊñπÂêë
             Vector3 pos = Vector3.Lerp(start, end, progress);
 
-            // ï˙ï®ê¸
+            // ÊîæÁâ©Á∑ö
             float y = 4 * height * progress * (1 - progress);
 
             pos.y += y;
             transform.position = pos;
 
-            // âÒì]
+            // ÂõûËª¢
             float rotateSpeed = -120f;
             transform.Rotate(axis, rotateSpeed * Time.deltaTime, Space.World);
 
