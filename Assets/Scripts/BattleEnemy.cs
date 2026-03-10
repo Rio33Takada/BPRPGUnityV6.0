@@ -94,8 +94,9 @@ public class BattleEnemy
 
     public void StartTurn()
     {
-        if(IsStun) stunParticle.Stop();
+        if (IsStun && stunParticle != null) stunParticle.Stop();
         IsStun = false;
+        surroundingPieces.Clear();
     }
 
     public void Move(FieldGrid grid)
@@ -125,6 +126,7 @@ public class BattleEnemy
 
     public void CheckStun(FieldGrid grid)
     {
+        surroundingPieces.Clear();
         var CheckPosList = new List<Vector2Int>();
         var directions = new Vector2Int[]
         {
@@ -138,7 +140,10 @@ public class BattleEnemy
             foreach(var pos in directions)
             {
                 var checkPos = pos + position;
-                if (!CheckPosList.Contains(checkPos) && grid.GetCell(checkPos.x, checkPos.y).OccupiedObject != body)
+                var cell = grid.GetCell(checkPos.x, checkPos.y);
+                if (cell == null) continue;
+
+                if (!CheckPosList.Contains(checkPos) && cell.OccupiedObject != body)
                 {
                     CheckPosList.Add(checkPos);
                 }
@@ -160,8 +165,7 @@ public class BattleEnemy
         }
 
         IsStun = true;
-        stunParticle.Play();
-
+        if (stunParticle != null) stunParticle.Play();
         Debug.Log($"{EnemyData.enemyName}ÇÕÉXÉ^ÉìèÛë‘Ç…Ç»Ç¡ÇΩ");
     }
 }
