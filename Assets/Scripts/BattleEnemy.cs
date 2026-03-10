@@ -13,7 +13,7 @@ public class BattleEnemy
 
     public EnemyBody body;
 
-    private ParticleSystem stunPraticle;
+    private ParticleSystem stunParticle;
 
     public int CurrentHp { get; private set; }
 
@@ -22,6 +22,8 @@ public class BattleEnemy
     public bool IsDead => CurrentHp <= 0;
 
     public bool IsStun {  get; private set; }
+
+    public List<RemainPieceObject> surroundingPieces = new List<RemainPieceObject>();
 
     public BattleEnemy(EnemySpawnInfo spawnInfo)
     {
@@ -36,7 +38,7 @@ public class BattleEnemy
 
     public void RegisterParticleSystem()
     {
-        stunPraticle = bodyCell.GetComponentInChildren<ParticleSystem>();
+        stunParticle = bodyCell.GetComponentInChildren<ParticleSystem>();
     }
 
     private IEnumerable<Vector2Int> GetBodyPositions(int originX, int originY)
@@ -92,7 +94,7 @@ public class BattleEnemy
 
     public void StartTurn()
     {
-        if(IsStun) stunPraticle.Stop();
+        if(IsStun) stunParticle.Stop();
         IsStun = false;
     }
 
@@ -144,14 +146,21 @@ public class BattleEnemy
 
         foreach(var position in CheckPosList)
         {
-            if(!(grid.GetCell(position.x, position.y).OccupiedObject is RemainPieceObject))
+            if(grid.GetCell(position.x, position.y).OccupiedObject is RemainPieceObject obj)
             {
+                surroundingPieces.Add(obj);
+                obj.nearestEnemy = this;
+            }
+            else
+            {
+                surroundingPieces.Clear();
                 return;
             }
         }
 
         IsStun = true;
-        stunPraticle.Play();
+        stunParticle.Play();
+
         Debug.Log($"{EnemyData.enemyName}ÇÕÉXÉ^ÉìèÛë‘Ç…Ç»Ç¡ÇΩ");
     }
 }

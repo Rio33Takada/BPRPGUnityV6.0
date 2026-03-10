@@ -8,6 +8,7 @@ public class RemainPieceObject : FieldObject
     private readonly CharacterPiece characterPiece;
     public int DurabilityPoint { get; private set; }
 
+    public BattleEnemy nearestEnemy;
 
     public RemainPieceObject(CharacterPiece piece)
     {
@@ -18,5 +19,12 @@ public class RemainPieceObject : FieldObject
         characterPiece = piece;
 
         DurabilityPoint = piece.GetCellInfoCopy().Count;
+    }
+
+    public CharacterPiece GetCharacterPiece() { return characterPiece; }
+
+    public void PopOutAnimation()
+    {
+        characterPiece.PopOutPiece(nearestEnemy.body.PosX, nearestEnemy.body.PosY);
     }
 }

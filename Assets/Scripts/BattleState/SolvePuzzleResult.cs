@@ -99,7 +99,7 @@ public class SolvePuzzleResult : BattleStateBase
             var remainPiece = piece.CreateRemainPiece();
 
             //FieldGridÇ…îzíu.
-            foreach(var c in piece.CellInfos)
+            foreach(var c in piece.CellInfoList)
             {
                 var fieldX = c.offset.x + piece.PosX;
                 var fieldY = c.offset.y + piece.PosY;
@@ -108,7 +108,7 @@ public class SolvePuzzleResult : BattleStateBase
             }
 
             //PuzzleGridÇ©ÇÁçÌèú.
-            foreach(var c in piece.CellInfos)
+            foreach(var c in piece.CellInfoList)
             {
                 var puzzleX = c.offset.x + piece.PosX;
                 var puzzleY = c.offset.y + piece.PosY;

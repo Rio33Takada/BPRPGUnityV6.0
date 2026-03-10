@@ -11,11 +11,11 @@ public class CharacterPiece : PuzzleObject
     public BattleCharacter character;
     private bool isDragging;
 
-    public List<PieceCellInfo> CellInfos = new List<PieceCellInfo>();
+    public List<PieceCellInfo> CellInfoList = new List<PieceCellInfo>();
 
     public List<PieceCellInfo> GetCellInfoCopy()
     {
-        return new List<PieceCellInfo>(CellInfos);
+        return new List<PieceCellInfo>(CellInfoList);
     }
 
     private void Awake()
@@ -66,7 +66,7 @@ public class CharacterPiece : PuzzleObject
 
         bool canPlace = true;
 
-        foreach (var c in CellInfos)
+        foreach (var c in CellInfoList)
         {
             var checkX = x + c.offset.x;
             var checkY = y + c.offset.y;
@@ -76,7 +76,7 @@ public class CharacterPiece : PuzzleObject
                 Debug.Log($"このピースは{x},{y}の位置に配置できません(範囲外)");
                 canPlace = false;
             }
-            else if (grid.GetCell(checkX, checkY).IsOccupied && !(grid.GetCell(checkX, checkY).OccupiedObject is CharacterPiece))
+            else if (grid.GetCell(checkX, checkY).IsOccupied && grid.GetCell(checkX, checkY).OccupiedObject is not CharacterPiece)
             {
                 Debug.Log($"このピースは{x},{y}の位置に配置できません(占有済み)");
                 canPlace = false;
@@ -89,7 +89,7 @@ public class CharacterPiece : PuzzleObject
             posX = x;
             posY = y;
 
-            foreach (var c in CellInfos)
+            foreach (var c in CellInfoList)
             {
                 var placeX = x + c.offset.x;
                 var placeY = y + c.offset.y;
@@ -97,7 +97,7 @@ public class CharacterPiece : PuzzleObject
                 if (grid.GetCell(placeX, placeY).OccupiedObject is CharacterPiece piece)
                 {
                     var copyList = piece.GetCellInfoCopy();
-                    foreach (var cell in piece.CellInfos)
+                    foreach (var cell in piece.CellInfoList)
                     {
                         var targetPos = cell.offset + new Vector2Int(piece.posX, piece.PosY);
                         var replacePos = new Vector2Int(placeX, placeY);
@@ -109,7 +109,7 @@ public class CharacterPiece : PuzzleObject
                             grid.GetCell(replacePos.x, replacePos.y).OccupiedObject = this;
                         }
                     }
-                    piece.CellInfos = copyList;
+                    piece.CellInfoList = copyList;
                 }
 
                 grid.GetCell(placeX, placeY).OccupiedObject = this;
@@ -128,5 +128,53 @@ public class CharacterPiece : PuzzleObject
     {
         var remainPiece = new RemainPieceObject(this);
         return remainPiece;
+    }
+
+    public void PopOutPiece(int enemyX, int enemyY)
+    {
+        var pos = new Vector3(posX, 0, posY);
+        var enemyPos = new Vector3(enemyX, 0, enemyY);
+
+        var dir = (enemyPos - pos).normalized;
+
+        StartCoroutine(PopAnimation(dir));
+    }
+
+    IEnumerator PopAnimation(Vector3 dir)
+    {
+        float duration = 0.6f;
+        float height = 2.0f;
+        float distance = 3.0f;
+
+        Vector3 start = transform.position;
+        Vector3 end = start + dir * distance;
+
+        // dir と垂直（xz平面）
+        Vector3 axis = Vector3.Cross(dir, Vector3.up).normalized;
+
+        float t = 0;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float progress = t / duration;
+
+            // 水平方向
+            Vector3 pos = Vector3.Lerp(start, end, progress);
+
+            // 放物線
+            float y = 4 * height * progress * (1 - progress);
+
+            pos.y += y;
+            transform.position = pos;
+
+            // 回転
+            float rotateSpeed = 720f;
+            transform.Rotate(axis, rotateSpeed * Time.deltaTime, Space.World);
+
+            yield return null;
+        }
+
+        transform.position = end;
     }
 }
