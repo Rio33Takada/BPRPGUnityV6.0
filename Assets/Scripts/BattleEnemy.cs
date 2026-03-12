@@ -49,6 +49,18 @@ public class BattleEnemy
         }
     }
 
+    private IEnumerable<FieldCell> GetBodyCells(FieldGrid grid, int originX, int originY)
+    {
+        foreach (var position in GetBodyPositions(originX, originY))
+        {
+            var cell = grid.GetCell(position.x, position.y);
+            if (cell != null)
+            {
+                yield return cell;
+            }
+        }
+    }
+
     private bool CanOccupy(FieldGrid grid, int originX, int originY)
     {
         foreach (var position in GetBodyPositions(originX, originY))
@@ -56,35 +68,43 @@ public class BattleEnemy
             var cell = grid.GetCell(position.x, position.y);
             if (cell == null)
             {
-                Debug.Log($"EnemyÇÕ{position.x},{position.y}ÇÃà íuÇ…îzíuÇ≈Ç´Ç‹ÇπÇÒ(îÕàÕäO)");
-                return false;
-            }
-
-            var occupiedObject = cell.OccupiedObject;
-            if (occupiedObject != null && occupiedObject != body)
-            {
-                Debug.Log($"EnemyÇÕ{position.x},{position.y}ÇÃà íuÇ…îzíuÇ≈Ç´Ç‹ÇπÇÒ(êËóLçœÇ›)");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public void SetOccupiedCells(FieldGrid grid, int originX, int originY, FieldObject fieldObject)
-    {
-        foreach (var position in GetBodyPositions(originX, originY))
+        foreach (var cell in GetBodyCells(grid, originX, originY))
         {
-            grid.GetCell(position.x, position.y).OccupiedObject = fieldObject;
+            cell.OccupiedObject = fieldObject;
         }
     }
 
-    public bool Spawn(FieldGrid grid)
+    private IEnumerable<Vector2Int> GetUniqueAdjacentPositions(FieldGrid grid)
     {
-        if (!CanOccupy(grid, SpawnPos.x, SpawnPos.y)) return false;
+        var checkedPositions = new HashSet<Vector2Int>();
+        var directions = new Vector2Int[]
+        {
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right,
+        };
 
-        body = new EnemyBody(this, SpawnPos.x, SpawnPos.y);
-        Debug.Log($"EnemyÇ{SpawnPos}Ç…ÉXÉ|Å[ÉìÇµÇ‹ÇµÇΩ");
+        foreach (var position in GetBodyPositions(body.PosX, body.PosY))
+            foreach (var direction in directions)
+            {
+                var adjacentPosition = position + direction;
+                var adjacentCell = grid.GetCell(adjacentPosition.x, adjacentPosition.y);
+                if (adjacentCell == null || adjacentCell.OccupiedObject == body)
+                {
+                    continue;
+                }
+
+                checkedPositions.Add(adjacentPosition);
+            }
+
+        return checkedPositions;
+        foreach (var position in GetUniqueAdjacentPositions(grid))
+            var cell = grid.GetCell(position.x, position.y);
+            if (cell != null && cell.OccupiedObject is RemainPieceObject obj)
+
+        Debug.Log($"{EnemyData.enemyName} is stunned");
+        Debug.Log($"Enemy„Çí{SpawnPos}„Å´„Çπ„Éù„Éº„É≥„Åó„Åæ„Åó„Åü");
 
         InitializeStatus();
         SetOccupiedCells(grid, SpawnPos.x, SpawnPos.y, body);
@@ -107,7 +127,7 @@ public class BattleEnemy
 
         if (!CanOccupy(grid, targetPosX, targetPosY))
         {
-            Debug.Log($"EnemyÇÕ{targetPosX},{targetPosY}ÇÃà íuÇ…à⁄ìÆÇ≈Ç´Ç‹ÇπÇÒ");
+            Debug.Log($"Enemy„ÅØ{targetPosX},{targetPosY}„ÅÆ‰ΩçÁΩÆ„Å´ÁßªÂãï„Åß„Åç„Åæ„Åõ„Çì");
             return;
         }
 
@@ -166,6 +186,6 @@ public class BattleEnemy
 
         IsStun = true;
         if (stunParticle != null) stunParticle.Play();
-        Debug.Log($"{EnemyData.enemyName}ÇÕÉXÉ^ÉìèÛë‘Ç…Ç»Ç¡ÇΩ");
+        Debug.Log($"{EnemyData.enemyName}„ÅØ„Çπ„Çø„É≥Áä∂ÊÖã„Å´„Å™„Å£„Åü");
     }
 }
