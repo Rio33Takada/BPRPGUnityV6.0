@@ -1,11 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 
 public class CharacterPiece : PuzzleObject
 {
     public static event Action<CharacterPiece, Vector2Int> OnPiecePlaced;
+
+    [SerializeField] private PuzzleGrid puzzleGrid;
+    [SerializeField] private float snapHeight = 5f;
 
     private Camera mainCamera;
     public BattleCharacter character;
@@ -21,6 +24,11 @@ public class CharacterPiece : PuzzleObject
     private void Awake()
     {
         mainCamera = Camera.main;
+
+        if (puzzleGrid == null)
+        {
+            puzzleGrid = FindObjectOfType<PuzzleGrid>();
+        }
     }
 
     public void BeginDrag(BattleCharacter character)
@@ -43,6 +51,8 @@ public class CharacterPiece : PuzzleObject
 
     private void FollowMouse()
     {
+        if (mainCamera == null) return;
+
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
         if (Physics.Raycast(ray, out RaycastHit hit))
@@ -55,73 +65,118 @@ public class CharacterPiece : PuzzleObject
     {
         isDragging = false;
 
-        var grid = GameObject.Find("PuzzleGrid").GetComponent<PuzzleGrid>();
+        if (!TryGetPlacement(out int x, out int y, out Vector3 snappedPos))
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        if (!CanPlaceAt(x, y))
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        PlaceAt(x, y, snappedPos);
+    }
+
+    private bool TryGetPlacement(out int x, out int y, out Vector3 snappedPos)
+    {
+        x = 0;
+        y = 0;
+        snappedPos = Vector3.zero;
+
+        if (puzzleGrid == null)
+        {
+            Debug.LogWarning("PuzzleGrid „ÅåË¶ã„Å§„Åã„Çâ„Å™„ÅÑ„Åü„ÇÅ„ÄÅ„Éî„Éº„Çπ„ÇíÈÖçÁΩÆ„Åß„Åç„Åæ„Åõ„Çì„ÄÇ");
+            return false;
+        }
 
         Vector3 pos = transform.position;
 
-        int x = Mathf.RoundToInt(pos.x / grid.CellSize);
-        int y = Mathf.RoundToInt(pos.z / grid.CellSize);
+        x = Mathf.RoundToInt(pos.x / puzzleGrid.CellSize);
+        y = Mathf.RoundToInt(pos.z / puzzleGrid.CellSize);
 
-        Vector3 snappedPos = new Vector3(x * grid.CellSize, 5, y * grid.CellSize);
+        snappedPos = new Vector3(x * puzzleGrid.CellSize, snapHeight, y * puzzleGrid.CellSize);
+        return true;
+    }
 
-        bool canPlace = true;
-
-        foreach (var c in CellInfoList)
+    private bool CanPlaceAt(int x, int y)
+    {
+        foreach (var cellInfo in CellInfoList)
         {
-            var checkX = x + c.offset.x;
-            var checkY = y + c.offset.y;
+            var checkX = x + cellInfo.offset.x;
+            var checkY = y + cellInfo.offset.y;
+            var targetCell = puzzleGrid.GetCell(checkX, checkY);
 
-            if (grid.GetCell(checkX, checkY) == null)
+            if (targetCell == null)
             {
-                Debug.Log($"Ç±ÇÃÉsÅ[ÉXÇÕ{x},{y}ÇÃà íuÇ…îzíuÇ≈Ç´Ç‹ÇπÇÒ(îÕàÕäO)");
-                canPlace = false;
+                Debug.Log($"„Åì„ÅÆ„Éî„Éº„Çπ„ÅØ {x},{y} „Å´ÈÖçÁΩÆ„Åß„Åç„Åæ„Åõ„ÇìÔºàÁØÑÂõ≤Â§ñÔºâ„ÄÇ");
+                return false;
             }
-            else if (grid.GetCell(checkX, checkY).IsOccupied && grid.GetCell(checkX, checkY).OccupiedObject is not CharacterPiece)
+
+            if (targetCell.IsOccupied && targetCell.OccupiedObject is not CharacterPiece)
             {
-                Debug.Log($"Ç±ÇÃÉsÅ[ÉXÇÕ{x},{y}ÇÃà íuÇ…îzíuÇ≈Ç´Ç‹ÇπÇÒ(êËóLçœÇ›)");
-                canPlace = false;
+                Debug.Log($"„Åì„ÅÆ„Éî„Éº„Çπ„ÅØ {x},{y} „Å´ÈÖçÁΩÆ„Åß„Åç„Åæ„Åõ„ÇìÔºàÂç†ÊúâÊ∏à„ÅøÔºâ„ÄÇ");
+                return false;
             }
         }
 
-        if (canPlace)
+        return true;
+    }
+
+    private void PlaceAt(int x, int y, Vector3 snappedPos)
+    {
+        transform.position = snappedPos;
+        posX = x;
+        posY = y;
+
+        foreach (var cellInfo in CellInfoList)
         {
-            transform.position = snappedPos;
-            posX = x;
-            posY = y;
+            var placeX = x + cellInfo.offset.x;
+            var placeY = y + cellInfo.offset.y;
+            var targetCell = puzzleGrid.GetCell(placeX, placeY);
 
-            foreach (var c in CellInfoList)
+            if (targetCell?.OccupiedObject is CharacterPiece piece)
             {
-                var placeX = x + c.offset.x;
-                var placeY = y + c.offset.y;
+                RemoveOverlappedCell(piece, placeX, placeY);
+            }
 
-                if (grid.GetCell(placeX, placeY).OccupiedObject is CharacterPiece piece)
+            if (targetCell != null)
+            {
+                targetCell.OccupiedObject = this;
+            }
+        }
+
+        character.PiecePlaced();
+        OnPiecePlaced?.Invoke(this, new Vector2Int(x, y));
+    }
+
+    private void RemoveOverlappedCell(CharacterPiece piece, int replaceX, int replaceY)
+    {
+        var copyList = piece.GetCellInfoCopy();
+
+        foreach (var cell in piece.CellInfoList)
+        {
+            var targetPos = cell.offset + new Vector2Int(piece.posX, piece.PosY);
+            var replacePos = new Vector2Int(replaceX, replaceY);
+
+            if (targetPos == replacePos)
+            {
+                copyList.Remove(cell);
+                Destroy(cell.gameObject);
+
+                var replacedCell = puzzleGrid.GetCell(replacePos.x, replacePos.y);
+                if (replacedCell != null)
                 {
-                    var copyList = piece.GetCellInfoCopy();
-                    foreach (var cell in piece.CellInfoList)
-                    {
-                        var targetPos = cell.offset + new Vector2Int(piece.posX, piece.PosY);
-                        var replacePos = new Vector2Int(placeX, placeY);
-
-                        if (targetPos == replacePos)
-                        {
-                            copyList.Remove(cell);
-                            Destroy(cell.gameObject);
-                            grid.GetCell(replacePos.x, replacePos.y).OccupiedObject = this;
-                        }
-                    }
-                    piece.CellInfoList = copyList;
+                    replacedCell.OccupiedObject = this;
                 }
 
-                grid.GetCell(placeX, placeY).OccupiedObject = this;
+                break;
             }
+        }
 
-            character.PiecePlaced();
-            OnPiecePlaced?.Invoke(this, new Vector2Int(x, y));
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        piece.CellInfoList = copyList;
     }
 
     public RemainPieceObject CreateRemainPiece()
@@ -149,7 +204,6 @@ public class CharacterPiece : PuzzleObject
         Vector3 start = transform.position;
         Vector3 end = start + dir * distance;
 
-        // dir Ç∆êÇíºÅixzïΩñ Åj
         Vector3 axis = Vector3.Cross(dir, Vector3.up).normalized;
 
         float t = 0;
@@ -159,16 +213,13 @@ public class CharacterPiece : PuzzleObject
             t += Time.deltaTime;
             float progress = t / duration;
 
-            // êÖïΩï˚å¸
             Vector3 pos = Vector3.Lerp(start, end, progress);
 
-            // ï˙ï®ê¸
             float y = 4 * height * progress * (1 - progress);
 
             pos.y += y;
             transform.position = pos;
 
-            // âÒì]
             float rotateSpeed = -120f;
             transform.Rotate(axis, rotateSpeed * Time.deltaTime, Space.World);
 
