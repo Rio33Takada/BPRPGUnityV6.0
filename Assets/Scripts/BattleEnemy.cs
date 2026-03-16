@@ -3,6 +3,14 @@ using UnityEngine;
 
 public class BattleEnemy
 {
+    private static readonly Vector2Int[] SurroundingDirections =
+    {
+        Vector2Int.up,
+        Vector2Int.down,
+        Vector2Int.left,
+        Vector2Int.right,
+    };
+
     private readonly EnemySpawnInfo spawnInfo;
 
     public EnemyData EnemyData { get { return spawnInfo.enemyData; } }
@@ -21,7 +29,7 @@ public class BattleEnemy
 
     public bool IsDead => CurrentHp <= 0;
 
-    public bool IsStun {  get; private set; }
+    public bool IsStun { get; private set; }
 
     public List<RemainPieceObject> surroundingPieces = new List<RemainPieceObject>();
 
@@ -56,14 +64,14 @@ public class BattleEnemy
             var cell = grid.GetCell(position.x, position.y);
             if (cell == null)
             {
-                Debug.Log($"Enemyは{position.x},{position.y}の位置に配置できません(範囲外)");
+                Debug.Log($"Enemy cannot be placed at {position.x}, {position.y} (out of range)");
                 return false;
             }
 
             var occupiedObject = cell.OccupiedObject;
             if (occupiedObject != null && occupiedObject != body)
             {
-                Debug.Log($"Enemyは{position.x},{position.y}の位置に配置できません(占有済み)");
+                Debug.Log($"Enemy cannot be placed at {position.x}, {position.y} (already occupied)");
                 return false;
             }
         }
@@ -81,10 +89,13 @@ public class BattleEnemy
 
     public bool Spawn(FieldGrid grid)
     {
-        if (!CanOccupy(grid, SpawnPos.x, SpawnPos.y)) return false;
+        if (!CanOccupy(grid, SpawnPos.x, SpawnPos.y))
+        {
+            return false;
+        }
 
         body = new EnemyBody(this, SpawnPos.x, SpawnPos.y);
-        Debug.Log($"Enemyを{SpawnPos}にスポーンしました");
+        Debug.Log($"Enemy spawned at {SpawnPos}");
 
         InitializeStatus();
         SetOccupiedCells(grid, SpawnPos.x, SpawnPos.y, body);
@@ -94,20 +105,28 @@ public class BattleEnemy
 
     public void StartTurn()
     {
-        if (IsStun && stunParticle != null) stunParticle.Stop();
+        if (IsStun && stunParticle != null)
+        {
+            stunParticle.Stop();
+        }
+
         IsStun = false;
         surroundingPieces.Clear();
     }
 
     public void Move(FieldGrid grid)
     {
-        if(IsStun) return;
+        if (IsStun)
+        {
+            return;
+        }
+
         var targetPosX = body.PosX;
         var targetPosY = body.PosY + 1;
 
         if (!CanOccupy(grid, targetPosX, targetPosY))
         {
-            Debug.Log($"Enemyは{targetPosX},{targetPosY}の位置に移動できません");
+            Debug.Log($"Enemy cannot move to {targetPosX}, {targetPosY}");
             return;
         }
 
@@ -127,45 +146,61 @@ public class BattleEnemy
     public void CheckStun(FieldGrid grid)
     {
         surroundingPieces.Clear();
-        var CheckPosList = new List<Vector2Int>();
-        var directions = new Vector2Int[]
-        {
-            Vector2Int.up,
-            Vector2Int.down,
-            Vector2Int.left,
-            Vector2Int.right,
-        };
-        foreach(var position in GetBodyPositions(body.PosX, body.PosY))
-        {
-            foreach(var pos in directions)
-            {
-                var checkPos = pos + position;
-                var cell = grid.GetCell(checkPos.x, checkPos.y);
-                if (cell == null) continue;
 
-                if (!CheckPosList.Contains(checkPos) && cell.OccupiedObject != body)
+        var checkPositions = CollectSurroundingPositions(grid);
+        if (!TryCollectSurroundingPieces(grid, checkPositions))
+        {
+            surroundingPieces.Clear();
+            return;
+        }
+
+        IsStun = true;
+        if (stunParticle != null)
+        {
+            stunParticle.Play();
+        }
+
+        Debug.Log($"{EnemyData.enemyName} is stunned");
+    }
+
+    private List<Vector2Int> CollectSurroundingPositions(FieldGrid grid)
+    {
+        var checkPositions = new List<Vector2Int>();
+
+        foreach (var position in GetBodyPositions(body.PosX, body.PosY))
+        {
+            foreach (var direction in SurroundingDirections)
+            {
+                var checkPos = direction + position;
+                var cell = grid.GetCell(checkPos.x, checkPos.y);
+                if (cell == null)
                 {
-                    CheckPosList.Add(checkPos);
+                    continue;
+                }
+
+                if (!checkPositions.Contains(checkPos) && cell.OccupiedObject != body)
+                {
+                    checkPositions.Add(checkPos);
                 }
             }
         }
 
-        foreach(var position in CheckPosList)
+        return checkPositions;
+    }
+
+    private bool TryCollectSurroundingPieces(FieldGrid grid, List<Vector2Int> checkPositions)
+    {
+        foreach (var position in checkPositions)
         {
-            if(grid.GetCell(position.x, position.y).OccupiedObject is RemainPieceObject obj)
+            if (grid.GetCell(position.x, position.y).OccupiedObject is not RemainPieceObject piece)
             {
-                surroundingPieces.Add(obj);
-                obj.nearestEnemy = this;
+                return false;
             }
-            else
-            {
-                surroundingPieces.Clear();
-                return;
-            }
+
+            surroundingPieces.Add(piece);
+            piece.nearestEnemy = this;
         }
 
-        IsStun = true;
-        if (stunParticle != null) stunParticle.Play();
-        Debug.Log($"{EnemyData.enemyName}はスタン状態になった");
+        return true;
     }
 }
