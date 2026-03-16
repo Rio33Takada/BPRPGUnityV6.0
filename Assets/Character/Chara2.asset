@@ -18,5 +18,4 @@ MonoBehaviour:
   defence: 20
   OwnPieces:
   - {fileID: 3525858250116228980, guid: 8de2dd092b167204eb4b9382649764b7, type: 3}
-  - {fileID: 3525858250116228980, guid: d90dea9e00279f248be76954338f66f4, type: 3}
   iconSprite: {fileID: 7710412531429212261, guid: a709831a8b2fa9348b53f53e3c9c9811, type: 3}
