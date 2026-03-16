@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
 public class BattleController : MonoBehaviour
 {
@@ -26,6 +25,11 @@ public class BattleController : MonoBehaviour
     public float playerMaxHp;
     public float playerCurrentHp;
 
+    private void OnDestroy()
+    {
+        CharacterPiece.OnPiecePlaced -= HandlePiecePlaced;
+    }
+
     private void Awake()
     {
         CharacterPiece.OnPiecePlaced += HandlePiecePlaced;
@@ -38,6 +42,9 @@ public class BattleController : MonoBehaviour
 
     private void CreatePlayerTeam()
     {
+        playerTeam.Clear();
+        playerMaxHp = 0;
+
         foreach(var c in teamData)
         {
             var chara = new BattleCharacter(c);
@@ -45,7 +52,6 @@ public class BattleController : MonoBehaviour
             playerMaxHp += chara.Hp;
         }
         playerCurrentHp = playerMaxHp;
-
     }
 
     public List<BattleCharacter> GetPlayerTeamCopy()
@@ -70,6 +76,8 @@ public class BattleController : MonoBehaviour
 
     private void CreateEnemies()
     {
+        enemies.Clear();
+
         foreach(var e in enemySpawns)
         {
             var enemy = new BattleEnemy(e);
@@ -83,7 +91,7 @@ public class BattleController : MonoBehaviour
 
     public List<BattleEnemy> GetBattleEnemies()
     {
-        return new List<BattleEnemy>(enemies);
+        return GetBattleEnemiesCopy();
     }
 
     public void SetBattleEnemies(List<BattleEnemy> battleEnemies)
@@ -108,18 +116,22 @@ public class BattleController : MonoBehaviour
 
     public void PrepareBattle()
     {
-        //データ作成.
-        CreatePlayerTeam();
-        CreateEnemies();
+        pieceList.Clear();
 
-        //UI生成.
-        uIController.CreateUI(this);
-        uIController.UpdateUI();
+        foreach (var c in playerTeam)
+        // {^UI\
+            var fieldCell = GetFieldCell(piece, cell.offset);
+            var enemy = fieldCell?.OccupiedObject?.GetParentEnemy();
+        foreach (var cell in piece.GetCellInfoCopy())
+            if (GetFieldCell(piece, cell.offset)?.OccupiedObject != null)
 
-        //見た目生成.
-        GenerateEnemyCells();
 
-        //バトル開始.
+    private FieldCell GetFieldCell(CharacterPiece piece, Vector2Int offset)
+    {
+        var posX = offset.x + piece.PosX;
+        var posY = offset.y + piece.PosY;
+        return fieldGrid.GetCell(posX, posY);
+    }
         ChangeState(startState);
     }
 
@@ -144,7 +156,7 @@ public class BattleController : MonoBehaviour
             if (!c.IsMaxPieceIndex) return;
         }
 
-        //決定ボタンUIを表示.
+        //豎ｺ螳壹�懊ち繝ｳUI繧定｡ｨ遉ｺ.
         Debug.Log("HandlePiecePlaced");
         uIController.CreateDicideButton();
     }
