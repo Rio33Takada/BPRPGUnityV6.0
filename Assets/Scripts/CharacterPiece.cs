@@ -27,7 +27,7 @@ public class CharacterPiece : PuzzleObject
 
         if (puzzleGrid == null)
         {
-            puzzleGrid = FindObjectOfType<PuzzleGrid>();
+            puzzleGrid = GameObject.Find("PuzzleGrid").GetComponent<PuzzleGrid>();
         }
     }
 
